@@ -45,19 +45,20 @@ jobs:
       #编译配置
       WRT_CONFIG: ${{matrix.CONFIG}}
       #默认主题
-      WRT_THEME: aurora
+      WRT_THEME: argon
       #默认主机名
       #WRT_NAME: OWRT
-      WRT_NAME: OWRT
+      WRT_NAME: Openwrt
       #默认WIFI名称
       #WRT_SSID: OWRT
       WRT_SSID: Openwrt
+      WRT_SSID5G: OpenWrt-5G
       #默认WIFI密码
-      WRT_WORD: 
+      WRT_WORD: ""
       #默认地址
       WRT_IP: 192.168.6.1
       #默认密码，仅作提示，修改无用
-      WRT_PW: 无
+      WRT_PW: ""
       #源码链接
       WRT_REPO: https://github.com/${{matrix.SOURCE}}.git
       #源码分支
