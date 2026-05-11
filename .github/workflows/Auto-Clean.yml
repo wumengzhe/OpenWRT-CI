@@ -4,9 +4,9 @@
 name: Auto-Clean
 
 on:
-  #自动清理：每天早上5点
+  #自动清理：每周四中午11点执行
   schedule:
-    - cron: 0 21 */5 * *
+    - cron: 0 3 * * 4
   #手动清理
   workflow_dispatch:
 
