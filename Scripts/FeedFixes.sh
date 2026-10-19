@@ -38,4 +38,34 @@ fix_miniupnpd() {
 	done
 }
 
+# 目标级热修：摘除 qualcommbe 的 kmod-qcom-ppe（2026-10-19）
+#
+# 背景：VIKINGYFY/immortalwrt@owrt 的 qualcommbe 目标把 kmod-qcom-ppe 放进
+#   target/linux/qualcommbe/Makefile 的 DEFAULT_PACKAGES，该驱动与内核 6.18.x 的
+#   dev_fill_forward_path 新签名不兼容（ppe_flowtable.c 编译失败），QCB-ALL 自 10-08 起中断。
+#
+# ⚠️ 关键实测：CONFIG_PACKAGE_kmod-qcom-ppe=n 写入 .config **无效**——
+#   DEFAULT_PACKAGES 成员经 MODULE_DEFAULT_kmod-qcom-ppe=y 把 PACKAGE_ 符号的默认拉成 y，
+#   make defconfig（conf --defconfig=.config Config.in）后实测仍解析为
+#   CONFIG_PACKAGE_kmod-qcom-ppe=y。故必须从目标 Makefile 的 DEFAULT_PACKAGES 摘除。
+#
+# 作用面：仅在续行（以 \ 结尾的 DEFAULT_PACKAGES 续行）中移除该包名，不触碰文件其余内容；
+#   同名字符串在本文件仅出现一次（DEFAULT_PACKAGES 块的续行）。
+# 维护说明：上游修复 ppe_flowtable.c 的 dev_fill_forward_path 兼容后，删除本段恢复硬件加速。
+#   禁用后为软件转发，功能不受影响。
+drop_qcom_ppe() {
+	local MK="./target/linux/qualcommbe/Makefile"
+	[ -f "$MK" ] || return 0
+	grep -q "kmod-qcom-ppe" "$MK" || return 0
+
+	sed -i '/\\$/s/[[:space:]]*kmod-qcom-ppe[[:space:]]*/ /' "$MK"
+
+	if grep -q "kmod-qcom-ppe" "$MK"; then
+		echo "FeedFixes: WARNING kmod-qcom-ppe 摘除失败（Makefile 格式可能已变），请人工检查 $MK"
+	else
+		echo "FeedFixes: removed kmod-qcom-ppe from qualcommbe DEFAULT_PACKAGES (PPE驱动与6.18.x不兼容)"
+	fi
+}
+
 fix_miniupnpd
+drop_qcom_ppe

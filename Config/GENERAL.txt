@@ -17,7 +17,11 @@ CONFIG_PACKAGE_luci-app-autoreboot=y
 #gecoosac(集客AP管理/AC控制器)按平台分流：无内置WiFi的平台(X86/ROCKCHIP/各WIFI-NO)在各自Config里=y，有WiFi的平台不装
 CONFIG_PACKAGE_luci-app-mini-diskmanager=y
 CONFIG_PACKAGE_luci-app-natmapt=y
-CONFIG_PACKAGE_luci-app-partexp=y
+#partexp(自动分区挂载)禁用（2026-10-19）：LUCI_DEPENDS:=+fdisk +block-mount +bc +blkid +parted
+#+btrfs-progs +losetup +resize2fs +e2fsprogs +f2fs-tools +kmod-loop——+dep 是 kconfig 硬 select，
+#写 CONFIG_PACKAGE_xxx=n 也会被强制拉回（实测 kmod-fs-btrfs=n 仍被 btrfs-progs 拉成 =y）。
+#功能与已保留的 mini-diskmanager 重叠，且是 btrfs-progs/kmod-fs-btrfs 链的唯一来源→禁用
+CONFIG_PACKAGE_luci-app-partexp=n
 CONFIG_PACKAGE_luci-app-samba4=y
 CONFIG_PACKAGE_luci-app-upnp=y
 CONFIG_PACKAGE_luci-app-wolultra=y
@@ -103,7 +107,7 @@ CONFIG_PACKAGE_curl=y
 CONFIG_PACKAGE_dmesg=y
 CONFIG_PACKAGE_exfat-fsck=n   # 2026-10-19瘦身：exFAT修复
 CONFIG_PACKAGE_exfat-mkfs=n   # 2026-10-19瘦身：exFAT格式化
-CONFIG_PACKAGE_fdisk=n           # 2026-10-19瘦身：分区工具
+CONFIG_PACKAGE_fdisk=n           # 2026-10-19瘦身：分区工具（注：mini-diskmanager 的 +fdisk 仍会强制 select 回来，本行仅在mini-diskmanager也移除时才生效）
 CONFIG_PACKAGE_fullconenat-sonic=y
 CONFIG_PACKAGE_gdisk=n           # 2026-10-19瘦身：分区工具
 CONFIG_PACKAGE_htop=n             # 2026-10-19瘦身：进程监控，无用
