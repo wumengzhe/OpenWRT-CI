@@ -184,7 +184,23 @@ jobs:
 
           $GITHUB_WORKSPACE/Scripts/Settings.sh
 
-          make defconfig -j$(nproc) && make clean -j$(nproc)
+          make defconfig -j$(nproc)
+
+          # 临时诊断（2026-10-19）：查 CONFIG_PACKAGE_kmod-qcom-ppe 被谁 select 拉回 =y
+          # 事实：已从 target/linux/qualcommbe/Makefile 的 DEFAULT_PACKAGES 摘除（新 .config 里
+          #   CONFIG_DEFAULT_/CONFIG_MODULE_DEFAULT_kmod-qcom-ppe 均已消失），平台配置也写了 =n，
+          #   但 defconfig 后 PACKAGE_kmod-qcom-ppe 仍是 =y → 说明存在 select。查清后删除本段。
+          echo "===== PPE DIAG BEGIN ====="
+          grep -n "qcom-ppe" .config || echo "(no qcom-ppe in .config)"
+          if [ -f ./tmp/.config-package.in ]; then
+            awk '/^config /{cfg=$2} /select PACKAGE_kmod-qcom-ppe/{print NR": selected by "cfg}' ./tmp/.config-package.in
+            grep -n "PACKAGE_kmod-qcom-ppe" ./tmp/.config-package.in | head -20
+          else
+            echo "(tmp/.config-package.in 不存在)"
+          fi
+          echo "===== PPE DIAG END ====="
+
+          make clean -j$(nproc)
 
       - name: Download Packages
         if: ${{ !inputs.WRT_TEST }}
