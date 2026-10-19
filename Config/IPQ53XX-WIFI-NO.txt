@@ -9,7 +9,6 @@ CONFIG_TARGET_DEVICE_qualcommbe_ipq53xx_DEVICE_xiaomi_be3600-pro-wired-p8=y
 #集客AP管理(AC控制器)（2026-10-19自GENERAL.txt分流）：本平台无内置WiFi，软路由/网关接集客AP场景保留
 CONFIG_PACKAGE_luci-app-gecoosac=y
 
-#PPE硬件卸载临时禁用（2026-10-19）：VIKINGYFY/immortalwrt@owrt 的 kmod-qcom-ppe 与内核6.18.x的
-#dev_fill_forward_path 新签名不兼容（ppe_flowtable.c:910/2147 编译失败，QCB-ALL自10-08起构建中断）。
-#待上游修复驱动后删除本行恢复硬件加速；禁用后为软件转发，功能不受影响。
-CONFIG_PACKAGE_kmod-qcom-ppe=n
+#PPE硬件卸载：2026-10-20 全量构建（QCB-ALL run 39288825139）实测 kmod-qcom-ppe 已能编过，
+#硬件卸载保留，无需禁用。注意：本行曾写 =n 但无效——该符号被别的包以
+#`select PACKAGE_kmod-qcom-ppe if TARGET_qualcommbe` 硬拉（见 Scripts/FeedFixes.sh 历史说明）。

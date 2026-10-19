@@ -37,35 +37,20 @@ fix_miniupnpd() {
 		fi
 	done
 }
-
-# 目标级热修：摘除 qualcommbe 的 kmod-qcom-ppe（2026-10-19）
-#
-# 背景：VIKINGYFY/immortalwrt@owrt 的 qualcommbe 目标把 kmod-qcom-ppe 放进
-#   target/linux/qualcommbe/Makefile 的 DEFAULT_PACKAGES，该驱动与内核 6.18.x 的
-#   dev_fill_forward_path 新签名不兼容（ppe_flowtable.c 编译失败），QCB-ALL 自 10-08 起中断。
-#
-# ⚠️ 关键实测：CONFIG_PACKAGE_kmod-qcom-ppe=n 写入 .config **无效**——
-#   DEFAULT_PACKAGES 成员经 MODULE_DEFAULT_kmod-qcom-ppe=y 把 PACKAGE_ 符号的默认拉成 y，
-#   make defconfig（conf --defconfig=.config Config.in）后实测仍解析为
-#   CONFIG_PACKAGE_kmod-qcom-ppe=y。故必须从目标 Makefile 的 DEFAULT_PACKAGES 摘除。
-#
-# 作用面：仅在续行（以 \ 结尾的 DEFAULT_PACKAGES 续行）中移除该包名，不触碰文件其余内容；
-#   同名字符串在本文件仅出现一次（DEFAULT_PACKAGES 块的续行）。
-# 维护说明：上游修复 ppe_flowtable.c 的 dev_fill_forward_path 兼容后，删除本段恢复硬件加速。
-#   禁用后为软件转发，功能不受影响。
-drop_qcom_ppe() {
-	local MK="./target/linux/qualcommbe/Makefile"
-	[ -f "$MK" ] || return 0
-	grep -q "kmod-qcom-ppe" "$MK" || return 0
-
-	sed -i '/\\$/s/[[:space:]]*kmod-qcom-ppe[[:space:]]*/ /' "$MK"
-
-	if grep -q "kmod-qcom-ppe" "$MK"; then
-		echo "FeedFixes: WARNING kmod-qcom-ppe 摘除失败（Makefile 格式可能已变），请人工检查 $MK"
-	else
-		echo "FeedFixes: removed kmod-qcom-ppe from qualcommbe DEFAULT_PACKAGES (PPE驱动与6.18.x不兼容)"
-	fi
-}
+# ─────────────────────────────────────────────────────────────────────────────
+# 历史留档（2026-10-19 误判，2026-10-20 修正）：kmod-qcom-ppe 曾被当作「编译失败」禁用。
+#   实测链条：
+#     ① 配置写 CONFIG_PACKAGE_kmod-qcom-ppe=n → defconfig 后仍 =y（+dep 是 select 级强制）；
+#     ② 改从 target/linux/qualcommbe/Makefile 的 DEFAULT_PACKAGES 摘除 → 日志确证摘除成功，
+#        新 .config 里 CONFIG_DEFAULT_/CONFIG_MODULE_DEFAULT_kmod-qcom-ppe 也确实消失了，
+#        但 CONFIG_PACKAGE_kmod-qcom-ppe **依旧 =y**；
+#     ③ 插桩扫 tmp/.config-package.in 拿到实锤：
+#          select PACKAGE_kmod-qcom-ppe if TARGET_qualcommbe
+#        → 还有别的包用 +dep 硬 select 它，光摘 DEFAULT_PACKAGES 不够。
+#     ④ QCB-ALL 全量构建（run 39288825139，2026-10-20）**成功** → 驱动本身现在能编过，
+#        根本不需要禁用，硬件卸载保留。上述两处禁用已全部撤除。
+#   教训：`=n` 无效 + 摘 DEFAULT_PACKAGES 也无效时，唯一硬杀是让包定义本身消失——
+#         对 KernelPackage 即删掉 `$(eval $(call KernelPackage,<name>))` 那一行。
+# ─────────────────────────────────────────────────────────────────────────────
 
 fix_miniupnpd
-drop_qcom_ppe
