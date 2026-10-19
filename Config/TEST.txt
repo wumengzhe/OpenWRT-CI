@@ -4,7 +4,15 @@ CONFIG_TARGET_qualcommax_ipq50xx=y
 #设备列表
 CONFIG_TARGET_DEVICE_qualcommax_ipq50xx_DEVICE_cmcc_mr3000d-ci=y
 #科学插件调整
-CONFIG_PACKAGE_luci-app-homeproxy=y
+CONFIG_PACKAGE_luci-app-homeproxy=n   # 2026-10-19 切换为passwall（与GENERAL.txt一致）
+CONFIG_PACKAGE_luci-app-passwall=y
+CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Xray=y
+#固件瘦身（2026-10-19）：砍passwall冗余核心（上游default y）
+CONFIG_PACKAGE_luci-app-passwall_INCLUDE_SingBox=n
+CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Shadowsocks_Rust_Client=n
+CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Shadowsocks_Rust_Server=n
+CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Haproxy=n
+CONFIG_PACKAGE_luci-app-passwall_INCLUDE_V2ray_Geoview=n
 #增加插件
 CONFIG_PACKAGE_luci-app-autoreboot=y
 CONFIG_PACKAGE_luci-app-gecoosac=y
@@ -19,7 +27,7 @@ CONFIG_PACKAGE_luci-app-attendedsysupgrade=n
 CONFIG_PACKAGE_luci-app-wol=n
 #参数调整
 CONFIG_CCACHE=y
-CONFIG_DEVEL=y
+CONFIG_DEVEL=n
 CONFIG_FEED_video=n
 CONFIG_TARGET_MULTI_PROFILE=y
 CONFIG_TARGET_PER_DEVICE_ROOTFS=y
